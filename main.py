@@ -1,16 +1,14 @@
-# This is a sample Python script.
-
-# Press Ctrl+F5 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from Target import Target
+from Watchtower import Watchtower
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press F9 to toggle the breakpoint.
+def main():
+    target = Target(40.4121, -86.94993)
+    wt1 = Watchtower(40.41271, -86.9508, 80)
+    wt2 = Watchtower(40.41301, -86.94991, 80)
+    wt3 = Watchtower(40.41269, -86.94903, 80)
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('Facu')
+    main()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
