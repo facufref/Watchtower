@@ -5,7 +5,7 @@ from Watchtower import Watchtower
 # Instantiate our Node
 app = Flask(__name__)
 
-# Instantiate the Miner
+# Instantiate the Watchtower
 watchtower = Watchtower()
 
 
