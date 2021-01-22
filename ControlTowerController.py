@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from ControlTower import ControlTower
+import numpy as np
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -9,10 +10,15 @@ app = Flask(__name__)
 controlTower = ControlTower()
 
 
-@app.route('/hi', methods=['GET'])
-def say_hi():
+@app.route('/check', methods=['POST'])
+def check_recording():
+    values = request.get_json()
+    recording = np.array(values.get('recording'))
+    position_lat = values.get('position_lat')
+    position_lon = values.get('position_lon')
+    controlTower.check_recording(position_lat, position_lon, recording)
     response = {
-        'message': "hi " + controlTower.uuid
+        'message': 'Received recording'
     }
     return jsonify(response), 200
 

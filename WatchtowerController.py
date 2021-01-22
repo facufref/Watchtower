@@ -1,12 +1,13 @@
 from argparse import ArgumentParser
 from flask import Flask, jsonify
 from Watchtower import Watchtower
+import pickle
 
 # Instantiate our Node
 app = Flask(__name__)
 
 # Instantiate the Watchtower
-watchtower = Watchtower()
+watchtower = None
 
 
 @app.route('/position', methods=['GET'])
@@ -19,6 +20,25 @@ def get_position():
     return jsonify(response), 200
 
 
+@app.route('/record', methods=['GET'])
+def record():
+    result = watchtower.record()
+    response = {
+        'data': result.tolist()
+    }
+    return jsonify(response), 200
+
+
+@app.route('/start', methods=['GET'])
+def start():
+    # TODO: Find a better way, the return never happens
+    watchtower.record_forever()
+    response = {
+        'message': 'Starting to record'
+    }
+    return jsonify(response), 200
+
+
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', default=5001, type=int, help='port to listen on')
@@ -26,7 +46,5 @@ if __name__ == '__main__':
     parser.add_argument('-lon', '--lon', default=0, type=float, help='longitude parameter of position')
     parser.add_argument('-r', '--range', default=0, type=float, help='range of the mic')
     args = parser.parse_args()
-    watchtower.position_lat = args.lat
-    watchtower.position_lon = args.lon
-    watchtower.range = args.range
+    watchtower = Watchtower(args.lat, args.lon, args.range, args.port)
     app.run(host='0.0.0.0', port=args.port)
