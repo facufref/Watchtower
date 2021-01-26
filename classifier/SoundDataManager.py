@@ -23,6 +23,7 @@ def get_dataset_from_wavfile(root, file_name, chunk_size_in_seconds, feature_typ
 
 def get_dataset_from_array(sample_rate, signal, chunk_size_in_seconds):
     list_mfcc = []
+    # signal = stereo_to_mono(signal)
     mfcc_list = get_processed_mfcc(sample_rate, signal, chunk_size_in_seconds)
     for mfcc in mfcc_list:
         flattened_mfcc = mfcc.flatten()
@@ -39,7 +40,7 @@ def get_data_target_filenames(df, root, chunk_size_in_seconds, feature_type, cla
     for f in df.index:
         file = wavfile.read(root + f)
         sample_rate, signal = file
-        signal = stereo_to_mono(signal)
+        # signal = stereo_to_mono(signal)
 
         if feature_type == 'mfcc':
             mfcc_list = get_processed_mfcc(sample_rate, signal, chunk_size_in_seconds)

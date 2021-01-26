@@ -2,7 +2,8 @@ from Target import Target
 from Watchtower import Watchtower
 from sklearn.metrics import classification_report
 from classifier.SoundClassifier import *
-from classifier.SoundDataManager import get_dataset_from_wavfile, get_train_test, pre_process
+from classifier.SoundDataManager import get_dataset_from_wavfile, get_train_test, pre_process, get_dataset_from_array
+from classifier.SoundRecorder import get_recording
 import pickle
 
 
@@ -14,7 +15,7 @@ def main():
 
 
 def get_trained_classifier(X_train, y_train, X_test, y_test, algorithm):
-    X_test, X_train = pre_process(X_test, X_train)
+    # X_test, X_train = pre_process(X_test, X_train)
     clf = SoundClassifier(algorithm)
     clf.train_classifier(X_train, y_train)
     predictions = clf.get_predictions(X_test)
@@ -26,17 +27,26 @@ def get_trained_classifier(X_train, y_train, X_test, y_test, algorithm):
 
 def train_classifier():
     # feature_type: 'mfcc' or 'filter_banks'
-    data, target, filenames = get_dataset_from_wavfile('wavfiles/snap/', 'labels.csv', 1.5, 'mfcc', 'class1')
+    data, target, filenames = get_dataset_from_wavfile('wavfiles/music/', 'labels.csv', 0.5, 'mfcc', 'class1')
     X_test, X_train, y_test, y_train, train_index, test_index = get_train_test(data, target)
-    X_test_processed, X_train_processed = pre_process(X_test, X_train)
 
     print("Final Report")
     clf = get_trained_classifier(X_train, y_train, X_test, y_test, "gnb")
-    clf.get_predictions(X_test)
     # save
-    with open('model.pkl', 'wb') as f:
+    with open('music_gnb_clf_0-5sec.pkl', 'wb') as f:
         pickle.dump(clf, f)
+    return clf
+
+
+def record():
+    print("Recording...")
+    recording = get_recording(duration=1.5)
+    recording_mfcc_list = get_dataset_from_array(44100, recording, 1.5)
+    return recording_mfcc_list
 
 
 if __name__ == '__main__':
-    train_classifier()
+    clf = train_classifier()
+    # recording = record()
+    # prediction = clf.get_predictions(recording)
+    # print(f'The prediction is {prediction}')

@@ -15,11 +15,11 @@ class Watchtower(object):
 
     def record(self):
         print("Recording...")
-        recording = get_recording(duration=1.5)
+        recording = get_recording(duration=0.5)
         # write_recording(recording, f'background{self.count}.wav')  # TODO: Remove
         # self.count += 1  # TODO: Remove
-        recording_mfcc_list = get_dataset_from_array(44100, recording, 1.5)
-        requests.post(f'http://localhost:5001/check', json={'position_lat': self.position_lat,
+        recording_mfcc_list = get_dataset_from_array(44100, recording, 0.5)
+        requests.post(f'http://localhost:5000/check', json={'position_lat': self.position_lat,
                                                             'position_lon': self.position_lon,
                                                             'recording': recording_mfcc_list.tolist()
                                                             })

@@ -8,7 +8,7 @@ class ControlTower(object):
 
     def check_recording(self, lat, lon, recording):
         print(f'Prediction for lat={lat} lon={lon}')
-        with open('models/snap_gnb_clf.pkl', 'rb') as f:
+        with open('models/music_gnb_clf_0-5sec.pkl', 'rb') as f:
             clf = pickle.load(f)
 
         prediction = clf.get_predictions(recording)
