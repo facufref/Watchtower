@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from ControlTower import ControlTower
 import numpy as np
 
@@ -8,6 +8,11 @@ app = Flask(__name__)
 
 # Instantiate the Miner
 controlTower = ControlTower()
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 
 @app.route('/check', methods=['POST'])
