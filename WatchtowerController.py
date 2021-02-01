@@ -13,6 +13,7 @@ watchtower = None
 @app.route('/position', methods=['GET'])
 def get_position():
     response = {
+        'uuid' : watchtower.uuid,
         'position_lat': watchtower.position_lat,
         'position_lon': watchtower.position_lon,
         'range': watchtower.range

@@ -19,9 +19,10 @@ def index():
 def check_recording():
     values = request.get_json()
     recording = np.array(values.get('recording'))
+    tower_id = values.get('uuid')
     position_lat = values.get('position_lat')
     position_lon = values.get('position_lon')
-    controlTower.check_recording(position_lat, position_lon, recording)
+    controlTower.check_recording(tower_id, position_lat, position_lon, recording)
     response = {
         'message': 'Received recording'
     }

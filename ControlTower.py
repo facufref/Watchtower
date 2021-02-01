@@ -5,11 +5,17 @@ import pickle
 class ControlTower(object):
     def __init__(self):
         self.uuid = str(uuid4()).replace('-', '')
+        self.tower_list = {}
+        self.clf = None
 
-    def check_recording(self, lat, lon, recording):
-        print(f'Prediction for lat={lat} lon={lon}')
         with open('models/music_gnb_clf_0-5sec.pkl', 'rb') as f:
-            clf = pickle.load(f)
+            self.clf = pickle.load(f)
 
-        prediction = clf.get_predictions(recording)
-        print(f'The prediction is {prediction}')
+    def check_recording(self, tower_id, lat, lon, recording):
+        prediction = self.clf.get_predictions(recording)
+        self.tower_list[tower_id] = {
+            'lat': lat,
+            'lon': lon,
+            'status': prediction
+        }
+        print(self.tower_list)
