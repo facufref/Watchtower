@@ -45,7 +45,6 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', default=5001, type=int, help='port to listen on')
     parser.add_argument('-lat', '--lat', default=0, type=float, help='latitude parameter of position')
     parser.add_argument('-lon', '--lon', default=0, type=float, help='longitude parameter of position')
-    parser.add_argument('-r', '--range', default=0, type=float, help='range of the mic')
     args = parser.parse_args()
-    watchtower = Watchtower(args.lat, args.lon, args.range, args.port)
+    watchtower = Watchtower(args.lat, args.lon, args.port)
     app.run(host='0.0.0.0', port=args.port)

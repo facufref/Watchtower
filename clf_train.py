@@ -7,13 +7,6 @@ from classifier.SoundRecorder import get_recording
 import pickle
 
 
-def main():
-    target = Target(40.4121, -86.94993)
-    wt1 = Watchtower(40.41271, -86.9508, 80)
-    wt2 = Watchtower(40.41301, -86.94991, 80)
-    wt3 = Watchtower(40.41269, -86.94903, 80)
-
-
 def get_trained_classifier(X_train, y_train, X_test, y_test, algorithm):
     # X_test, X_train = pre_process(X_test, X_train)
     clf = SoundClassifier(algorithm)

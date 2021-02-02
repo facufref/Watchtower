@@ -12,6 +12,7 @@ sklearn = "*"
 pandas = "*"
 sounddevice = "*"
 requests = "*"
+pykafka = "*"
 
 [requires]
 python_version = "3.9"
