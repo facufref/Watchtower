@@ -12,7 +12,7 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 mapMarkers = []
 circles = []
 
-var source = new EventSource('/topic/watchtower'); //ENTER YOUR TOPICNAME HERE
+var source = new EventSource('/topic/watchtower');
 source.addEventListener('message', function(e){
     obj = JSON.parse(e.data);
     for (var i = 0; i < mapMarkers.length; i++) {
@@ -28,7 +28,7 @@ source.addEventListener('message', function(e){
             color: value.status === "noise" ? '#82bc6e' : '#e25975',
             fillColor: value.status === "noise" ? '#82bc6e' : '#e25975',
             fillOpacity: 0.5,
-            radius: 50 // Pass through parameters
+            radius: value.range
         }).addTo(mymap);
         circles.push(circle)
     }

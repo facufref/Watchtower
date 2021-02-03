@@ -5,11 +5,12 @@ import requests
 
 
 class Watchtower(object):
-    def __init__(self, lat, lon, port):
+    def __init__(self, lat, lon, port, ran):
         self.uuid = str(uuid4()).replace('-', '')
         self.position_lat = lat
         self.position_lon = lon
         self.port = port
+        self.range = ran
         self.count = 1  # TODO: Remove
 
     def record(self):
@@ -21,6 +22,7 @@ class Watchtower(object):
         requests.post(f'http://localhost:5001/check', json={'uuid': self.uuid,
                                                             'position_lat': self.position_lat,
                                                             'position_lon': self.position_lon,
+                                                            'range': self.range,
                                                             'recording': recording_mfcc_list.tolist()
                                                             })
         return recording_mfcc_list

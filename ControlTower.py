@@ -18,12 +18,13 @@ class ControlTower(object):
         with open('models/music_gnb_clf_0-5sec.pkl', 'rb') as f:
             self.clf = pickle.load(f)
 
-    def check_recording(self, tower_id, lat, lon, recording):
+    def check_recording(self, tower_id, lat, lon, ran, recording):
         prediction = self.clf.get_predictions(recording)
         self.tower_list[tower_id] = {
             'timestamp': str(datetime.utcnow()),
             'lat': lat,
             'lon': lon,
+            'range': ran,
             'status': prediction[0]
         }
 
