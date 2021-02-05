@@ -1,7 +1,8 @@
 from argparse import ArgumentParser
+
 from flask import Flask, jsonify
+
 from Watchtower import Watchtower
-import pickle
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -13,7 +14,7 @@ watchtower = None
 @app.route('/position', methods=['GET'])
 def get_position():
     response = {
-        'uuid' : watchtower.uuid,
+        'uuid' : watchtower.tower_id,
         'position_lat': watchtower.position_lat,
         'position_lon': watchtower.position_lon,
         'range': watchtower.range
@@ -42,10 +43,12 @@ def start():
 
 if __name__ == '__main__':
     parser = ArgumentParser()
+    parser.add_argument('-id', '--id', default=5001, type=str, help='Tower id')
     parser.add_argument('-p', '--port', default=5001, type=int, help='port to listen on')
     parser.add_argument('-lat', '--lat', default=0, type=float, help='latitude parameter of position')
     parser.add_argument('-lon', '--lon', default=0, type=float, help='longitude parameter of position')
-    parser.add_argument('-r', '--range', default=0, type=int, help='range of the tower')
+    parser.add_argument('-r', '--range', default=50, type=int, help='range of the tower')
+    parser.add_argument('-s', '--save', default=0, type=bool, help='if the recording should be saved or not')
     args = parser.parse_args()
-    watchtower = Watchtower(args.lat, args.lon, args.port, args.range)
+    watchtower = Watchtower(args.id, args.lat, args.lon, args.port, args.range, args.save)
     app.run(host='0.0.0.0', port=args.port)

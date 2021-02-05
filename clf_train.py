@@ -1,10 +1,11 @@
-from Target import Target
-from Watchtower import Watchtower
 from sklearn.metrics import classification_report
-from classifier.SoundClassifier import *
-from classifier.SoundDataManager import get_dataset_from_wavfile, get_train_test, pre_process, get_dataset_from_array
-from classifier.SoundRecorder import get_recording
 import pickle
+
+from sklearn.metrics import classification_report
+
+from classifier.SoundClassifier import *
+from classifier.SoundDataManager import get_dataset_from_wavfile, get_train_test, get_dataset_from_array
+from classifier.SoundRecorder import get_recording
 
 
 def get_trained_classifier(X_train, y_train, X_test, y_test, algorithm):

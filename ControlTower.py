@@ -1,7 +1,8 @@
 import json
-from datetime import datetime, date
-from uuid import uuid4
 import pickle
+from datetime import datetime
+from uuid import uuid4
+
 from pykafka import KafkaClient
 
 client = KafkaClient(hosts='localhost:9092')
@@ -18,10 +19,10 @@ class ControlTower(object):
         with open('models/music_gnb_clf_0-5sec.pkl', 'rb') as f:
             self.clf = pickle.load(f)
 
-    def check_recording(self, tower_id, lat, lon, ran, recording):
+    def check_recording(self, tower_id, timestamp, lat, lon, ran, recording):
         prediction = self.clf.get_predictions(recording)
         self.tower_list[tower_id] = {
-            'timestamp': str(datetime.utcnow()),
+            'timestamp': timestamp,
             'lat': lat,
             'lon': lon,
             'range': ran,
@@ -31,14 +32,14 @@ class ControlTower(object):
     def delete_old_towers(self):
         obsolete_towers = []
         now = datetime.utcnow()
-        for uuid in self.tower_list:
-            timestamp = datetime.strptime(self.tower_list[uuid]['timestamp'], "%Y-%m-%d %H:%M:%S.%f")
+        for tower_id in self.tower_list:
+            timestamp = datetime.strptime(self.tower_list[tower_id]['timestamp'], "%Y-%m-%d %H:%M:%S.%f")
             elapsed = now - timestamp
             if elapsed.total_seconds() > 30:
-                obsolete_towers.append(uuid)
+                obsolete_towers.append(tower_id)
 
-        for uuid in obsolete_towers:
-            del self.tower_list[uuid]
+        for tower_id in obsolete_towers:
+            del self.tower_list[tower_id]
 
     def produce_checkpoint(self):
         message = json.dumps(self.tower_list)

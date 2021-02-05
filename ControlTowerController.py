@@ -21,12 +21,13 @@ def index():
 def check_recording():
     values = request.get_json()
     recording = np.array(values.get('recording'))
-    tower_id = values.get('uuid')
+    tower_id = values.get('tower_id')
+    timestamp = values.get('timestamp')
     position_lat = values.get('position_lat')
     position_lon = values.get('position_lon')
     ran = values.get('range')
 
-    controlTower.check_recording(tower_id, position_lat, position_lon, ran, recording)
+    controlTower.check_recording(tower_id, timestamp, position_lat, position_lon, ran, recording)
     controlTower.produce_checkpoint()
 
     response = {
