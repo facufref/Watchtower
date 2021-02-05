@@ -16,13 +16,13 @@ class Watchtower(object):
 
     def record(self):
         print("Recording...")
-        recording = get_recording(duration=0.5)
+        recording = get_recording(duration=1)
         timestamp = str(datetime.utcnow())
 
         if self.save_recording:
             write_recording(recording, f'recordings/recording {timestamp.replace(":", "-")}.wav')
 
-        recording_mfcc_list = get_dataset_from_array(44100, recording, 1)
+        recording_mfcc_list = get_dataset_from_array(44100, recording, 0.5)
         requests.post(f'http://localhost:5001/check', json={'tower_id': self.tower_id,
                                                             'position_lat': self.position_lat,
                                                             'position_lon': self.position_lon,
