@@ -13,6 +13,7 @@ pandas = "*"
 sounddevice = "*"
 requests = "*"
 pykafka = "*"
+pyloudnorm = "*"
 
 [requires]
 python_version = "3.9"
