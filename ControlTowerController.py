@@ -26,8 +26,9 @@ def check_recording():
     position_lat = values.get('position_lat')
     position_lon = values.get('position_lon')
     ran = values.get('range')
+    intensity = values.get('intensity')
 
-    controlTower.check_recording(tower_id, timestamp, position_lat, position_lon, ran, recording)
+    controlTower.check_recording(tower_id, timestamp, position_lat, position_lon, ran, intensity, recording)
     controlTower.produce_checkpoint()
 
     response = {
