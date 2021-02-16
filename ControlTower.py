@@ -33,12 +33,12 @@ class ControlTower(object):
     def predict_threat(self):
         towerA_id = "wt1"
         towerB_id = "wt2"
-        latA = self.tower_list[towerA_id]["lat"]
-        latB = self.tower_list[towerB_id]["lat"]
-        lonA = self.tower_list[towerA_id]["lon"]
-        lonB = self.tower_list[towerB_id]["lon"]
-        intensityA = self.tower_list[towerA_id]["intensity"]
-        intensityB = self.tower_list[towerB_id]["intensity"]
+        latA = float(self.tower_list[towerA_id]["lat"])
+        lonA = float(self.tower_list[towerA_id]["lon"])
+        latB = float(self.tower_list[towerB_id]["lat"])
+        lonB = float(self.tower_list[towerB_id]["lon"])
+        intensityA = float(self.tower_list[towerA_id]["intensity"])
+        intensityB = float(self.tower_list[towerB_id]["intensity"])
         ratio = (intensityB / intensityA)
         proportion = ratio / (ratio + 1)
 
