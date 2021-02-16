@@ -29,6 +29,7 @@ def check_recording():
     intensity = values.get('intensity')
 
     controlTower.check_recording(tower_id, timestamp, position_lat, position_lon, ran, intensity, recording)
+    controlTower.check_for_threats()
     controlTower.produce_checkpoint()
 
     response = {
