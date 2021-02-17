@@ -3,10 +3,10 @@ import pickle
 from datetime import datetime
 from uuid import uuid4
 from pykafka import KafkaClient
+from config import time_before_delete_towers, threat_value, kafka_topic_name
 
 client = KafkaClient(hosts='localhost:9092')
-topic = client.topics['watchtower']
-threatValue = 'music'
+topic = client.topics[kafka_topic_name]
 
 
 class ControlTower(object):
@@ -29,7 +29,7 @@ class ControlTower(object):
             'range': float(ran),
             'intensity': float(intensity),
             'status': prediction[0],
-            'isThreatDetected': prediction[0] == threatValue
+            'isThreatDetected': prediction[0] == threat_value
         }
 
     def check_for_threats(self):
@@ -87,7 +87,7 @@ class ControlTower(object):
         for tower_id in self.tower_list:
             timestamp = datetime.strptime(self.tower_list[tower_id]['timestamp'], "%Y-%m-%d %H:%M:%S.%f")
             elapsed = now - timestamp
-            if elapsed.total_seconds() > 30:
+            if elapsed.total_seconds() > time_before_delete_towers:
                 obsolete_towers.append(tower_id)
 
         for tower_id in obsolete_towers:
