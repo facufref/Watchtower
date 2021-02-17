@@ -3,7 +3,7 @@ import pickle
 from datetime import datetime
 from uuid import uuid4
 from pykafka import KafkaClient
-from config import time_before_delete_towers, threat_value, kafka_topic_name
+from config import *
 
 client = KafkaClient(hosts='localhost:9092')
 topic = client.topics[kafka_topic_name]
@@ -17,7 +17,7 @@ class ControlTower(object):
         self.clf = None
         self.producer = topic.get_sync_producer()
 
-        with open('models/music_gnb_clf_0-5sec.pkl', 'rb') as f:
+        with open(clf_model_path, 'rb') as f:
             self.clf = pickle.load(f)
 
     def check_recording(self, tower_id, timestamp, lat, lon, ran, intensity, recording):

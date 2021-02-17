@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 from classifier.SoundDataManager import get_dataset_from_array
-from config import control_tower_ip
+from config import control_tower_ip, recording_time
 import classifier.SoundRecorder as sr
 import requests
 
@@ -23,7 +23,7 @@ class Watchtower(object):
         if self.save_recording:
             sr.write_recording(recording, f'recordings/recording {timestamp.replace(":", "-")}.wav')
 
-        recording_mfcc_list = get_dataset_from_array(44100, recording, 0.5)
+        recording_mfcc_list = get_dataset_from_array(44100, recording, recording_time)
         requests.post(f'{control_tower_ip}/check', json={'tower_id': self.tower_id,
                                                             'position_lat': self.position_lat,
                                                             'position_lon': self.position_lon,
