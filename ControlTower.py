@@ -1,5 +1,6 @@
 import json
 import pickle
+import numpy as np
 from datetime import datetime
 from uuid import uuid4
 from pykafka import KafkaClient
@@ -16,12 +17,14 @@ class ControlTower(object):
         self.threat = None
         self.clf = None
         self.producer = topic.get_sync_producer()
+        self.last_noise_intensities = []
 
         with open(clf_model_path, 'rb') as f:
             self.clf = pickle.load(f)
 
     def check_recording(self, tower_id, timestamp, lat, lon, ran, intensity, recording):
         prediction = self.clf.get_predictions(recording)
+        self.save_new_noise(intensity, prediction)
         self.tower_list[tower_id] = {
             'timestamp': timestamp,
             'lat': float(lat),
@@ -31,6 +34,12 @@ class ControlTower(object):
             'status': prediction[0],
             'isThreatDetected': prediction[0] == threat_value
         }
+
+    def save_new_noise(self, intensity, prediction):
+        if prediction[0] != threat_value:
+            self.last_noise_intensities.append(float(intensity))
+        if len(self.last_noise_intensities) > number_of_saved_noises:
+            self.last_noise_intensities.pop(0)
 
     def check_for_threats(self):
         towerA_id, towerB_id = self.get_top_two_towers()
@@ -57,8 +66,20 @@ class ControlTower(object):
         lonB = self.tower_list[towerB_id]["lon"]
         intensityA = self.tower_list[towerA_id]["intensity"]
         intensityB = self.tower_list[towerB_id]["intensity"]
-        ratio = (intensityB / intensityA)
+
+        np_noise = np.array(self.last_noise_intensities)
+        avg_noise = np.average(np_noise)
+        stdev_noise = np_noise.std()
+        devA = intensityA - avg_noise
+        devB = intensityB - avg_noise
+        stdevA = devA / stdev_noise
+        stdevB = devB / stdev_noise
+
+        ratio = (stdevB / stdevA)
         proportion = ratio / (ratio + 1)
+        proportion = 1 if proportion > 1 else proportion
+        proportion = 0 if proportion < 0 else proportion
+
         predicted_lat = latA + ((latB - latA) * proportion)
         predicted_lon = lonA + ((lonB - lonA) * proportion)
         return predicted_lat, predicted_lon

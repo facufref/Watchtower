@@ -14,10 +14,11 @@ class ControlTowerTest(unittest.TestCase):
         controlTower = ControlTower()
         controlTower.tower_list["wt1"] = tower_info_1
         controlTower.tower_list["wt2"] = tower_info_2
+        controlTower.last_noise_intensities = [0.010541213, 0.010367212, 0.010551292, 0.010367212, 0.010551292, 0.010547385, 0.010795445, 0.010547385, 0.010795445, 0.010522221]
         controlTower.check_for_threats()
         self.assertEqual(2, len(controlTower.tower_list))
-        self.assertEqual(controlTower.threat['lat'], 40.41277325298627)
-        self.assertEqual(controlTower.threat['lon'], -86.95061234947407)
+        self.assertEqual(controlTower.threat['lat'], 40.41273649246327)
+        self.assertEqual(controlTower.threat['lon'], -86.95072140569229)
         self.assertEqual(controlTower.threat['range'], 25)
 
     def test_get_top_two_towers_should_return_top_two(self):

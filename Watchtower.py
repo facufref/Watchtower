@@ -17,7 +17,7 @@ class Watchtower(object):
 
     def record(self):
         print("Recording...")
-        recording = sr.get_recording(duration=1)
+        recording = sr.get_recording(duration=recording_time)
         timestamp = str(datetime.utcnow())
 
         if self.save_recording:
