@@ -5,3 +5,4 @@ kafka_topic_name = 'watchtower'
 clf_model_path = 'models/music_gnb_clf_1-5sec.pkl'
 recording_time = 1.5
 number_of_saved_noises = 50
+logging_enabled = False

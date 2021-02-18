@@ -1,6 +1,8 @@
 import json
 import pickle
 import numpy as np
+import logging
+import datetime
 from datetime import datetime
 from uuid import uuid4
 from pykafka import KafkaClient
@@ -22,6 +24,17 @@ class ControlTower(object):
         with open(clf_model_path, 'rb') as f:
             self.clf = pickle.load(f)
 
+        self.initialize_logging()
+
+    @staticmethod
+    def initialize_logging():
+        if logging_enabled:
+            logging.basicConfig(filename=f'logs/ct-logs-{str(datetime.utcnow()).replace(":", "-")}.log', level=logging.CRITICAL)
+            logging.critical(f'classifier = {clf_model_path}')
+            logging.critical(f'threat_value = {threat_value}')
+            logging.critical(f'recording_time = {recording_time}')
+            logging.critical(f'number_of_saved_noises = {number_of_saved_noises}')
+
     def check_recording(self, tower_id, timestamp, lat, lon, ran, intensity, recording):
         prediction = self.clf.get_predictions(recording)
         self.save_new_noise(intensity, prediction)
@@ -42,65 +55,69 @@ class ControlTower(object):
             self.last_noise_intensities.pop(0)
 
     def check_for_threats(self):
-        towerA_id, towerB_id = self.get_top_two_towers()
-        if towerA_id is None:
+        tower_a_id, tower_b_id = self.get_top_two_towers()
+        if tower_a_id is None:
             self.threat = None
-        elif towerB_id is None:
+        elif tower_b_id is None:
             self.threat = {
-                "lat": self.tower_list[towerA_id]["lat"],
-                "lon": self.tower_list[towerA_id]["lon"],
-                "range": self.tower_list[towerA_id]["range"]
+                "lat": self.tower_list[tower_a_id]["lat"],
+                "lon": self.tower_list[tower_a_id]["lon"],
+                "range": self.tower_list[tower_a_id]["range"]
             }
+            if logging_enabled:
+                logging.critical(f'[{datetime.utcnow()}] Tower {tower_a_id} spotted a threat. Coordinates [{self.tower_list[tower_a_id]["lat"]}; {self.tower_list[tower_a_id]["lon"]}]')
         else:
-            predicted_lat, predicted_lon = self.calculate_threat_position(towerA_id, towerB_id)
+            predicted_lat, predicted_lon = self.calculate_threat_position(tower_a_id, tower_b_id)
             self.threat = {
                 "lat": predicted_lat,
                 "lon": predicted_lon,
-                "range": self.tower_list[towerA_id]["range"] * 0.5  # Use 50% of the tower range for now
+                "range": self.tower_list[tower_a_id]["range"] * 0.5  # Use 50% of the tower range for now
             }
+            if logging_enabled:
+                logging.critical(f'[{datetime.utcnow()}] Towers {tower_a_id} and {tower_b_id} spotted a threat. Coordinates [{predicted_lat}; {predicted_lon}]')
 
-    def calculate_threat_position(self, towerA_id, towerB_id):
-        latA = self.tower_list[towerA_id]["lat"]
-        lonA = self.tower_list[towerA_id]["lon"]
-        latB = self.tower_list[towerB_id]["lat"]
-        lonB = self.tower_list[towerB_id]["lon"]
-        intensityA = self.tower_list[towerA_id]["intensity"]
-        intensityB = self.tower_list[towerB_id]["intensity"]
+    def calculate_threat_position(self, tower_a_id, tower_b_id):
+        lat_a = self.tower_list[tower_a_id]["lat"]
+        lon_a = self.tower_list[tower_a_id]["lon"]
+        lat_b = self.tower_list[tower_b_id]["lat"]
+        lon_b = self.tower_list[tower_b_id]["lon"]
+        intensity_a = self.tower_list[tower_a_id]["intensity"]
+        intensity_b = self.tower_list[tower_b_id]["intensity"]
 
         np_noise = np.array(self.last_noise_intensities)
         avg_noise = np.average(np_noise)
         stdev_noise = np_noise.std()
-        devA = intensityA - avg_noise
-        devB = intensityB - avg_noise
-        stdevA = devA / stdev_noise
-        stdevB = devB / stdev_noise
+        dev_a = intensity_a - avg_noise
+        dev_b = intensity_b - avg_noise
+        stdev_a = dev_a / stdev_noise
+        stdev_b = dev_b / stdev_noise
 
-        ratio = (stdevB / stdevA)
+        ratio = (stdev_b / stdev_a)
         proportion = ratio / (ratio + 1)
         proportion = 1 if proportion > 1 else proportion
         proportion = 0 if proportion < 0 else proportion
 
-        predicted_lat = latA + ((latB - latA) * proportion)
-        predicted_lon = lonA + ((lonB - lonA) * proportion)
+        predicted_lat = lat_a + ((lat_b - lat_a) * proportion)
+        predicted_lon = lon_a + ((lon_b - lon_a) * proportion)
         return predicted_lat, predicted_lon
 
     def get_top_two_towers(self):
-        firstTowerId = None
-        secondTowerId = None
+        first_tower_id = None
+        second_tower_id = None
 
         for tower_id in self.tower_list:
             if not self.tower_list[tower_id]["isThreatDetected"]:
                 continue
 
-            if firstTowerId is None:
-                firstTowerId = tower_id
-            elif self.tower_list[tower_id]["intensity"] >= self.tower_list[firstTowerId]["intensity"]:
-                secondTowerId = firstTowerId
-                firstTowerId = tower_id
-            elif secondTowerId is None or self.tower_list[tower_id]["intensity"] >= self.tower_list[secondTowerId]["intensity"]:
-                secondTowerId = tower_id
+            if first_tower_id is None:
+                first_tower_id = tower_id
+            elif self.tower_list[tower_id]["intensity"] >= self.tower_list[first_tower_id]["intensity"]:
+                second_tower_id = first_tower_id
+                first_tower_id = tower_id
+            elif second_tower_id is None or self.tower_list[tower_id]["intensity"] >= self.tower_list[second_tower_id]["intensity"]:
+                second_tower_id = tower_id
 
-        return firstTowerId, secondTowerId
+        return first_tower_id, second_tower_id
 
     def delete_old_towers(self):
         obsolete_towers = []
