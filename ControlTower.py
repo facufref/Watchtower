@@ -33,6 +33,9 @@ class ControlTower(object):
             logging.critical(f'threat_value = {threat_value}')
             logging.critical(f'recording_time = {recording_time}')
             logging.critical(f'number_of_saved_noises = {number_of_saved_noises}')
+            #  Set Flask logger only to Error
+            log = logging.getLogger('werkzeug')
+            log.setLevel(logging.ERROR)
 
     def check_recording(self, tower_id, timestamp, lat, lon, ran, intensity, recording):
         prediction = self.clf.get_predictions(recording)
@@ -47,7 +50,6 @@ class ControlTower(object):
             'isThreatDetected': prediction[0] == threat_value,
             'lastNoises': self.tower_dict[tower_id]['lastNoises'] if is_tower_registered else []
         }
-        print(f'[{datetime.utcnow()}][{tower_id}] intensity = {intensity}')
         self.save_new_noise(self.tower_dict[tower_id]['lastNoises'], float(intensity), prediction[0])
 
     def save_new_noise(self, last_noise_intensities, intensity, prediction):
@@ -123,7 +125,6 @@ class ControlTower(object):
         median_noise = np.median(np_noise)
         dev = intensity - median_noise
         self.tower_dict[tower_id]["dev"] = np.abs(dev)
-        print(f'[{tower_id}] dev = {dev}; np.abs(dev) = {np.abs(dev)}; median_noise = {median_noise}; intensity = {intensity}')
 
     def delete_old_towers(self):
         obsolete_towers = []
@@ -139,5 +140,4 @@ class ControlTower(object):
 
     def produce_checkpoint(self):
         message = json.dumps({'towers': self.tower_dict, 'threat': self.threat})
-        # print(message)
         self.producer.produce(message.encode('ascii'))
