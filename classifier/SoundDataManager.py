@@ -21,10 +21,17 @@ def get_dataset_from_wavfile(root, file_name, chunk_size_in_seconds, feature_typ
     return data, target, filenames
 
 
-def get_dataset_from_array(sample_rate, signal, chunk_size_in_seconds):
+def get_dataset_from_array(sample_rate, signal, chunk_size_in_seconds, feature_type='mfcc'):
     list_mfcc = []
     # signal = stereo_to_mono(signal)
-    mfcc_list = get_processed_mfcc(sample_rate, signal, chunk_size_in_seconds)
+
+    if feature_type == 'mfcc':
+        mfcc_list = get_processed_mfcc(sample_rate, signal, chunk_size_in_seconds)
+    elif feature_type == 'filter_banks':
+        mfcc_list = get_processed_filter_banks(sample_rate, signal, chunk_size_in_seconds)
+    else:
+        raise Exception(f'No feature type with value {feature_type}')
+
     for mfcc in mfcc_list:
         flattened_mfcc = mfcc.flatten()
         list_mfcc.append(flattened_mfcc)
@@ -86,5 +93,5 @@ def get_dataframe_first_match(df, row, column):
 
 def stereo_to_mono(signal):
     if signal.ndim == 2:
-        return signal[:, 0]/2 + signal[:, 1]/2
+        return signal[:, 0] / 2 + signal[:, 1] / 2
     return signal

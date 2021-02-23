@@ -23,7 +23,7 @@ class Watchtower(object):
         if self.save_recording:
             sr.write_recording(recording, f'recordings/recording {timestamp.replace(":", "-")}.wav')
 
-        recording_mfcc_list = get_dataset_from_array(44100, recording, recording_time)
+        recording_mfcc_list = get_dataset_from_array(44100, recording, recording_time, feature_type='mfcc')
         requests.post(f'{control_tower_ip}/check', json={'tower_id': self.tower_id,
                                                             'position_lat': self.position_lat,
                                                             'position_lon': self.position_lon,

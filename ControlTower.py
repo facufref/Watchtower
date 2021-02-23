@@ -15,11 +15,10 @@ topic = client.topics[kafka_topic_name]
 class ControlTower(object):
     def __init__(self):
         self.uuid = str(uuid4()).replace('-', '')
-        self.tower_list = {}
+        self.tower_dict = {}
         self.threat = None
         self.clf = None
         self.producer = topic.get_sync_producer()
-        self.last_noise_intensities = []
 
         with open(clf_model_path, 'rb') as f:
             self.clf = pickle.load(f)
@@ -37,22 +36,25 @@ class ControlTower(object):
 
     def check_recording(self, tower_id, timestamp, lat, lon, ran, intensity, recording):
         prediction = self.clf.get_predictions(recording)
-        self.save_new_noise(intensity, prediction)
-        self.tower_list[tower_id] = {
+        is_tower_registered = tower_id in self.tower_dict.keys()
+        self.tower_dict[tower_id] = {
             'timestamp': timestamp,
             'lat': float(lat),
             'lon': float(lon),
             'range': float(ran),
             'intensity': float(intensity),
             'status': prediction[0],
-            'isThreatDetected': prediction[0] == threat_value
+            'isThreatDetected': prediction[0] == threat_value,
+            'lastNoises': self.tower_dict[tower_id]['lastNoises'] if is_tower_registered else []
         }
+        print(f'[{datetime.utcnow()}][{tower_id}] intensity = {intensity}')
+        self.save_new_noise(self.tower_dict[tower_id]['lastNoises'], float(intensity), prediction[0])
 
-    def save_new_noise(self, intensity, prediction):
+    def save_new_noise(self, last_noise_intensities, intensity, prediction):
         if prediction[0] != threat_value:
-            self.last_noise_intensities.append(float(intensity))
-        if len(self.last_noise_intensities) > number_of_saved_noises:
-            self.last_noise_intensities.pop(0)
+            last_noise_intensities.append(intensity)
+        if len(last_noise_intensities) > number_of_saved_noises:
+            last_noise_intensities.pop(0)
 
     def check_for_threats(self):
         tower_a_id, tower_b_id = self.get_top_two_towers()
@@ -60,39 +62,33 @@ class ControlTower(object):
             self.threat = None
         elif tower_b_id is None:
             self.threat = {
-                "lat": self.tower_list[tower_a_id]["lat"],
-                "lon": self.tower_list[tower_a_id]["lon"],
-                "range": self.tower_list[tower_a_id]["range"]
+                "lat": self.tower_dict[tower_a_id]["lat"],
+                "lon": self.tower_dict[tower_a_id]["lon"],
+                "range": self.tower_dict[tower_a_id]["range"]
             }
             if logging_enabled:
-                logging.critical(f'[{datetime.utcnow()}] Tower {tower_a_id} spotted a threat. Coordinates [{self.tower_list[tower_a_id]["lat"]}; {self.tower_list[tower_a_id]["lon"]}]')
+                logging.critical(f'[{datetime.utcnow()}] Tower {tower_a_id} spotted a threat. Coordinates [{self.tower_dict[tower_a_id]["lat"]}; {self.tower_dict[tower_a_id]["lon"]}]')
         else:
             predicted_lat, predicted_lon = self.calculate_threat_position(tower_a_id, tower_b_id)
             self.threat = {
                 "lat": predicted_lat,
                 "lon": predicted_lon,
-                "range": self.tower_list[tower_a_id]["range"] * 0.5  # Use 50% of the tower range for now
+                "range": self.tower_dict[tower_a_id]["range"] * 0.75  # Use 75% of the tower range for now
             }
             if logging_enabled:
-                logging.critical(f'[{datetime.utcnow()}] Towers {tower_a_id} and {tower_b_id} spotted a threat. Coordinates [{predicted_lat}; {predicted_lon}]')
+                now = datetime.utcnow()
+                logging.critical(f'[{now}] Towers {tower_a_id} and {tower_b_id} spotted a threat. Coordinates [{predicted_lat}; {predicted_lon}]')
+                logging.critical(f'[{now}] Tower {tower_a_id} dev = {self.tower_dict[tower_a_id]["dev"]} ; Tower {tower_b_id} dev = {self.tower_dict[tower_b_id]["dev"]} ')
 
     def calculate_threat_position(self, tower_a_id, tower_b_id):
-        lat_a = self.tower_list[tower_a_id]["lat"]
-        lon_a = self.tower_list[tower_a_id]["lon"]
-        lat_b = self.tower_list[tower_b_id]["lat"]
-        lon_b = self.tower_list[tower_b_id]["lon"]
-        intensity_a = self.tower_list[tower_a_id]["intensity"]
-        intensity_b = self.tower_list[tower_b_id]["intensity"]
+        lat_a = self.tower_dict[tower_a_id]["lat"]
+        lon_a = self.tower_dict[tower_a_id]["lon"]
+        lat_b = self.tower_dict[tower_b_id]["lat"]
+        lon_b = self.tower_dict[tower_b_id]["lon"]
+        dev_a = self.tower_dict[tower_a_id]["dev"]
+        dev_b = self.tower_dict[tower_b_id]["dev"]
 
-        np_noise = np.array(self.last_noise_intensities)
-        avg_noise = np.average(np_noise)
-        stdev_noise = np_noise.std()
-        dev_a = intensity_a - avg_noise
-        dev_b = intensity_b - avg_noise
-        stdev_a = dev_a / stdev_noise
-        stdev_b = dev_b / stdev_noise
-
-        ratio = (stdev_b / stdev_a)
+        ratio = (dev_b / dev_a)
         proportion = ratio / (ratio + 1)
         proportion = 1 if proportion > 1 else proportion
         proportion = 0 if proportion < 0 else proportion
@@ -105,33 +101,43 @@ class ControlTower(object):
         first_tower_id = None
         second_tower_id = None
 
-        for tower_id in self.tower_list:
-            if not self.tower_list[tower_id]["isThreatDetected"]:
+        for tower_id in self.tower_dict:
+            if not self.tower_dict[tower_id]["isThreatDetected"]:
                 continue
+
+            self.set_dev(tower_id)
 
             if first_tower_id is None:
                 first_tower_id = tower_id
-            elif self.tower_list[tower_id]["intensity"] >= self.tower_list[first_tower_id]["intensity"]:
+            elif self.tower_dict[tower_id]["dev"] >= self.tower_dict[first_tower_id]["dev"]:
                 second_tower_id = first_tower_id
                 first_tower_id = tower_id
-            elif second_tower_id is None or self.tower_list[tower_id]["intensity"] >= self.tower_list[second_tower_id]["intensity"]:
+            elif second_tower_id is None or self.tower_dict[tower_id]["dev"] >= self.tower_dict[second_tower_id]["dev"]:
                 second_tower_id = tower_id
 
         return first_tower_id, second_tower_id
 
+    def set_dev(self, tower_id):
+        intensity = self.tower_dict[tower_id]["intensity"]
+        np_noise = np.array(self.tower_dict[tower_id]['lastNoises'])
+        median_noise = np.median(np_noise)
+        dev = intensity - median_noise
+        self.tower_dict[tower_id]["dev"] = np.abs(dev)
+        print(f'[{tower_id}] dev = {dev}; np.abs(dev) = {np.abs(dev)}; median_noise = {median_noise}; intensity = {intensity}')
+
     def delete_old_towers(self):
         obsolete_towers = []
         now = datetime.utcnow()
-        for tower_id in self.tower_list:
-            timestamp = datetime.strptime(self.tower_list[tower_id]['timestamp'], "%Y-%m-%d %H:%M:%S.%f")
+        for tower_id in self.tower_dict:
+            timestamp = datetime.strptime(self.tower_dict[tower_id]['timestamp'], "%Y-%m-%d %H:%M:%S.%f")
             elapsed = now - timestamp
             if elapsed.total_seconds() > time_before_delete_towers:
                 obsolete_towers.append(tower_id)
 
         for tower_id in obsolete_towers:
-            del self.tower_list[tower_id]
+            del self.tower_dict[tower_id]
 
     def produce_checkpoint(self):
-        message = json.dumps({'towers': self.tower_list, 'threat': self.threat})
-        print(message)
+        message = json.dumps({'towers': self.tower_dict, 'threat': self.threat})
+        # print(message)
         self.producer.produce(message.encode('ascii'))
