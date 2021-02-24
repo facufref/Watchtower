@@ -12,3 +12,11 @@
 - smalluav_v2_gnb_clf_0-5sec
 - smalluav_v2_gnb_clf_1sec
 - smalluav_v2_gnb_clf_1-5sec
+
+# Models trained using background noise (silence, voices, and other noises) vs UAV (models zyma X20P1 and zyma X5UW1)
+- smalluav_v3_gnb_filter_banks_clf_0-5sec
+- smalluav_v3_gnb_filter_banks_clf_1sec
+- smalluav_v3_gnb_filter_banks_clf_1-5sec
+- smalluav_v3_gnb_mfcc_clf_0-5sec
+- smalluav_v3_gnb_mfcc_clf_1sec
+- smalluav_v3_gnb_mfcc_clf_1-5sec

@@ -21,13 +21,13 @@ def get_trained_classifier(X_train, y_train, X_test, y_test, algorithm):
 
 def train_classifier():
     # feature_type: 'mfcc' or 'filter_banks'
-    data, target, filenames = get_dataset_from_wavfile('wavfiles/smalluav/', 'labels.csv', 0.5, 'mfcc', 'class1')
+    data, target, filenames = get_dataset_from_wavfile('wavfiles/smalluav/', 'labels.csv', 1.5, 'mfcc', 'class1')
     X_test, X_train, y_test, y_train, train_index, test_index = get_train_test(data, target)
 
     print("Final Report")
     clf = get_trained_classifier(X_train, y_train, X_test, y_test, "gnb")
     # save
-    with open('smalluav_v2_gnb_clf_0-5sec.pkl', 'wb') as f:
+    with open('smalluav_v3_gnb_mfcc_clf_1-5sec.pkl', 'wb') as f:
         pickle.dump(clf, f)
     return clf
 

@@ -1,8 +1,9 @@
-control_tower_ip = 'http://localhost:5001'
-time_before_delete_towers = 30
+control_tower_ip = 'http://192.168.2.193:5001'
+time_before_delete_towers = 20
 threat_value = 'uav'
 kafka_topic_name = 'watchtower'
-clf_model_path = 'models/smalluav_v2_gnb_clf_1-5sec.pkl'
-recording_time = 1.5
+clf_model_path = 'models/smalluav_v3_gnb_filter_banks_clf_1-5sec.pkl'
+recording_time = 0.5
 number_of_saved_noises = 50
+feature_type = 'filter_banks'
 logging_enabled = False
