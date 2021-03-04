@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 from classifier.SoundDataManager import get_dataset_from_array
-from config import control_tower_ip, recording_time, feature_type
+from config import control_tower_ip, recording_time, feature_type, chunk_size
 import classifier.SoundRecorder as sr
 import requests
 
@@ -23,7 +23,7 @@ class Watchtower(object):
         if self.save_recording:
             sr.write_recording(recording, f'recordings/recording {timestamp.replace(":", "-")}.wav')
 
-        recording_feature_list = get_dataset_from_array(44100, recording, recording_time, feature_type=feature_type)
+        recording_feature_list = get_dataset_from_array(44100, recording, chunk_size, feature_type=feature_type)
         requests.post(f'{control_tower_ip}/check', json={'tower_id': self.tower_id,
                                                             'position_lat': self.position_lat,
                                                             'position_lon': self.position_lon,

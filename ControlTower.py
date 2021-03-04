@@ -1,5 +1,7 @@
 import json
 import pickle
+import time
+
 import numpy as np
 import logging
 import datetime
@@ -7,9 +9,11 @@ from datetime import datetime
 from uuid import uuid4
 from pykafka import KafkaClient
 from config import *
+from collections import Counter
 
 client = KafkaClient(hosts='localhost:9092')
 topic = client.topics[kafka_topic_name]
+elapsed_list = []
 
 
 class ControlTower(object):
@@ -38,7 +42,16 @@ class ControlTower(object):
             log.setLevel(logging.ERROR)
 
     def check_recording(self, tower_id, timestamp, lat, lon, ran, intensity, recording):
-        prediction = self.clf.get_predictions(recording)
+        # TODO: Remove elapsed time in the future since it may cause additional delays
+        start = time.time()
+        predictions = self.clf.get_predictions(recording)
+        prediction = get_most_frequent_value(predictions)
+        end = time.time()
+        elapsed = end - start
+        elapsed_list.append(elapsed)
+        print(f'Prediction time { elapsed }')
+        print(f'Average prediction time is { np.mean(elapsed_list) } for { len(elapsed_list) } samples')
+
         is_tower_registered = tower_id in self.tower_dict.keys()
         self.tower_dict[tower_id] = {
             'timestamp': timestamp,
@@ -46,19 +59,23 @@ class ControlTower(object):
             'lon': float(lon),
             'range': float(ran),
             'intensity': float(intensity),
-            'status': prediction[0],
-            'isThreatDetected': prediction[0] == threat_value,
+            'status': prediction,
+            'isThreatDetected': prediction == threat_value,
             'lastNoises': self.tower_dict[tower_id]['lastNoises'] if is_tower_registered else []
         }
-        self.save_new_noise(self.tower_dict[tower_id]['lastNoises'], float(intensity), prediction[0])
+        self.save_new_noise(tower_id, float(intensity), prediction)
+        if log_dev_enabled:
+            dev = self.get_deviation(tower_id)
+            print(f"Intensity = {intensity} ; Deviation = {dev}")
 
-    def save_new_noise(self, last_noise_intensities, intensity, prediction):
-        if prediction[0] != threat_value:
+    def save_new_noise(self, tower_id, intensity, prediction):
+        last_noise_intensities = self.tower_dict[tower_id]['lastNoises']
+        if prediction != threat_value:
             last_noise_intensities.append(intensity)
         if len(last_noise_intensities) > number_of_saved_noises:
             last_noise_intensities.pop(0)
 
-    def check_for_threats(self):
+    def log_threat_position(self):
         tower_a_id, tower_b_id = self.get_top_two_towers()
         if tower_a_id is None:
             self.threat = None
@@ -120,11 +137,15 @@ class ControlTower(object):
         return first_tower_id, second_tower_id
 
     def set_dev(self, tower_id):
+        dev = self.get_deviation(tower_id)
+        self.tower_dict[tower_id]["dev"] = np.abs(dev)
+
+    def get_deviation(self, tower_id):
         intensity = self.tower_dict[tower_id]["intensity"]
         np_noise = np.array(self.tower_dict[tower_id]['lastNoises'])
-        median_noise = np.median(np_noise)
+        median_noise = np.median(np_noise) if len(np_noise) > 0 else intensity
         dev = intensity - median_noise
-        self.tower_dict[tower_id]["dev"] = np.abs(dev)
+        return dev
 
     def delete_old_towers(self):
         obsolete_towers = []
@@ -141,3 +162,8 @@ class ControlTower(object):
     def produce_checkpoint(self):
         message = json.dumps({'towers': self.tower_dict, 'threat': self.threat})
         self.producer.produce(message.encode('ascii'))
+
+
+def get_most_frequent_value(lst):
+    data = Counter(lst)
+    return max(lst, key=data.get)

@@ -14,7 +14,7 @@ class ControlTowerTest(unittest.TestCase):
         control_tower = ControlTower()
         control_tower.tower_dict["wt1"] = tower_info_1
         control_tower.tower_dict["wt2"] = tower_info_2
-        control_tower.check_for_threats()
+        control_tower.log_threat_position()
         self.assertEqual(2, len(control_tower.tower_dict))
         self.assertEqual(control_tower.threat['lat'], 40.41273649246327)
         self.assertEqual(control_tower.threat['lon'], -86.95072140569229)
