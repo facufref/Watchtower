@@ -64,9 +64,6 @@ class ControlTower(object):
             'lastNoises': self.tower_dict[tower_id]['lastNoises'] if is_tower_registered else []
         }
         self.save_new_noise(tower_id, float(intensity), prediction)
-        if log_dev_enabled:
-            dev = self.get_deviation(tower_id)
-            print(f"Intensity = {intensity} ; Deviation = {dev}")
 
     def save_new_noise(self, tower_id, intensity, prediction):
         last_noise_intensities = self.tower_dict[tower_id]['lastNoises']
