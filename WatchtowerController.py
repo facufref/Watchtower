@@ -26,7 +26,7 @@ def get_position():
 def record():
     result = watchtower.record()
     response = {
-        'data': result.tolist()
+        'data': result
     }
     return jsonify(response), 200
 
