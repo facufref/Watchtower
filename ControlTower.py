@@ -104,8 +104,7 @@ class ControlTower(object):
         dev_a = self.tower_dict[tower_a_id]["dev"]
         dev_b = self.tower_dict[tower_b_id]["dev"]
 
-        ratio = (dev_b / dev_a)
-        proportion = ratio / (ratio + 1)
+        proportion = dev_b / (dev_a + dev_b)
         proportion = 1 if proportion > 1 else proportion
         proportion = 0 if proportion < 0 else proportion
 
