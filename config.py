@@ -1,11 +1,13 @@
 control_tower_ip = 'http://192.168.2.193:5001'
 time_before_delete_towers = 20
 threat_value = 'uav'
+non_threat_value = 'noise'
+threat_percentage = 0.6 #
 kafka_topic_name = 'watchtower'
-clf_model_path = 'models/realuav_v1_svm_filter_banks_clf_0-1sec.pkl'
-recording_time = 1
+clf_model_path = 'models/realuav_v1_neuralNetworks_filter_banks_clf_0-1sec.pkl'
+recording_time = 1 #
 chunk_size = 0.1
 number_of_saved_noises = 50
 feature_type = 'filter_banks'
-logging_enabled = False  # For enabling logging in the log file
+logging_enabled = True  # For enabling logging in the log file
 is_recording_only = False

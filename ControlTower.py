@@ -45,7 +45,7 @@ class ControlTower(object):
         # TODO: Remove elapsed time in the future since it may cause additional delays
         start = time.time()
         predictions = self.clf.get_predictions(recording)
-        prediction = get_most_frequent_value(predictions)
+        prediction = get_positive_if_percentage_is_met(predictions.tolist(), threat_value, non_threat_value, threat_percentage)
         end = time.time()
         elapsed = end - start
         elapsed_list.append(elapsed)
@@ -163,3 +163,12 @@ class ControlTower(object):
 def get_most_frequent_value(lst):
     data = Counter(lst)
     return max(lst, key=data.get)
+
+
+def get_positive_if_percentage_is_met(lst, positive_value, negative_value, required_percentage):
+    occurrences = lst.count(positive_value)
+    percentage = occurrences / len(lst)
+    print(percentage)
+    if percentage >= required_percentage:
+        return positive_value
+    return negative_value

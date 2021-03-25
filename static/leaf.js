@@ -1,4 +1,4 @@
-const myMap = L.map('mapid').setView([40.4121, -86.94993], 17);
+const myMap = L.map('mapid').setView([0, 0], 17);
 const mapMarkers = []
 const mapCircles = []
 const source = new EventSource('/topic/watchtower');

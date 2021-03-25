@@ -33,7 +33,7 @@ class SoundClassifier:
         elif algorithm == 'svm':
             self._classifier = SVC(C=1.3, kernel='rbf', gamma='scale')  # alternative => C=1000, gamma=1000. Also pre-process data
         elif algorithm == 'neuralNetworks':
-            self._classifier = MLPClassifier(random_state=0)  # alternative => max_iter=1000, alpha=1. Also pre-process data
+            self._classifier = MLPClassifier(random_state=0, alpha=0.1)  # alternative => max_iter=1000, alpha=1. Also pre-process data
         elif algorithm == 'gmm':
             self._classifier = GaussianProcessClassifier(kernel=RationalQuadratic(alpha=1, length_scale=1), random_state=0)
         elif algorithm == 'gnb':

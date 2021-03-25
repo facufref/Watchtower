@@ -9,7 +9,7 @@ def main():
     while object_name != 'q':
         object_name = str(input())
         now = datetime.utcnow()
-        logging.critical(f'Object {object_name} logged at {now}')
+        logging.critical(f'Object {object_name} logged at {now}. ')
 
 
 if __name__ == '__main__':

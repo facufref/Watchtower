@@ -22,17 +22,17 @@ def get_trained_classifier(X_train, y_train, X_test, y_test, algorithm):
 
 def train_classifier():
     # feature_type: 'mfcc' or 'filter_banks'
-    data, target, filenames = get_dataset_from_wavfile('../wavfiles/smalluav/', 'labels.csv', 0.2, 'filter_banks', 'class1')
+    data, target, filenames = get_dataset_from_wavfile('../wavfiles/realuav/', 'labels.csv', 0.5, 'filter_banks', 'class1')
     X_test, X_train, y_test, y_train, train_index, test_index = get_train_test(data, target)
 
     print("Final Report")
     start = time.time()
-    clf = get_trained_classifier(X_train, y_train, X_test, y_test, "svm")
+    clf = get_trained_classifier(X_train, y_train, X_test, y_test, "neuralNetworks")
     end = time.time()
     print(f'Training time { end - start }')
 
     # save
-    with open('../smalluav_v4_svm_filter_banks_clf_0-2sec.pkl', 'wb') as f:
+    with open('../realuav_v1_neuralNetworks_filter_banks_clf_0-5sec.pkl', 'wb') as f:
         pickle.dump(clf, f)
     return clf
 
@@ -40,6 +40,3 @@ def train_classifier():
 if __name__ == '__main__':
     start = time.time()
     clf = train_classifier()
-    # recording = record()
-    # prediction = clf.get_predictions(recording)
-    # print(f'The prediction is {prediction}')
